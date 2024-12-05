@@ -30,7 +30,7 @@ def login():
         if username == "admin" and password == "1234":
             st.session_state.authenticated = True
             st.success("Logged in successfully!")
-            st.experimental_rerun()  # Redirect to the main page after login
+            st.rerun()  # Redirect to the main page after login
         else:
             st.error("Invalid username or password")
 
@@ -41,7 +41,7 @@ def logout():
     st.session_state.generated_questions = []
     st.session_state.selected_questions = []
     st.success("Logged out successfully!")
-    st.experimental_rerun()  # Redirect to the login page by rerunning the app
+    st.rerun()  # Redirect to the login page by rerunning the app
 
 
 # Database setup
@@ -171,7 +171,7 @@ else:
             if st.button("Save Subject", key="save_subject"):
                 insert_subject(new_subject)
                 st.success(f"Subject '{new_subject}' added successfully!")
-                st.experimental_rerun()
+                st.rerun()
 
     # Difficulty Level Input with Dynamic Dropdown and Save
     selected_level = st.selectbox("Difficulty Level (select or add new):", levels + ["Add new..."])
@@ -181,7 +181,7 @@ else:
             if st.button("Save Difficulty Level", key="save_level"):
                 insert_level(new_level)
                 st.success(f"Difficulty level '{new_level}' added successfully!")
-                st.experimental_rerun()
+                st.rerun()
 
     # Static Input for Number of Questions
     number_of_questions = st.number_input("Number of Questions:", min_value=1, max_value=100, value=10)
