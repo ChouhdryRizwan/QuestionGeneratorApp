@@ -16,11 +16,17 @@ genai.configure(api_key=GOOGLE_API_KEY)
 if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
 
-if "selected_questions" not in st.session_state:
-    st.session_state.selected_questions = []
-
 if "generated_questions" not in st.session_state:
     st.session_state.generated_questions = []
+    
+if 'selected_questions' not in st.session_state:
+    st.session_state.selected_questions = []
+    
+if 'selected_subject' not in st.session_state:
+    st.session_state.selected_subject = None
+    
+if 'selected_level' not in st.session_state:
+    st.session_state.selected_level = None    
 
 # Function to handle login
 def login():
@@ -107,7 +113,7 @@ def generate_questions(subject, number, level, question_type):
     }
     difficulty = difficulty_mapping.get(level, "basic")
     
-    if question_type == "MCQ":
+    if question_type == "MCQs":
         prompt = f"Generate {number} multiple choice questions for the subject '{subject}' at a {difficulty} level in this format:\n\n" \
                  f"1. Question?\n" \
                  f"a) Option 1\n" \
@@ -133,7 +139,7 @@ def generate_questions(subject, number, level, question_type):
 
 # Parsing function with refined output
 def parse_questions(questions_text, question_type):
-    if question_type == "MCQ":
+    if question_type == "MCQs":
         question_pattern = r'(\d+\..+?)\s*(a\).+?)\s*(b\).+?)\s*(c\).+?)\s*(d\).+?)\s*Correct Answer: \[([a-d])\]'
     elif question_type == "True/False":
         question_pattern = r'(\d+\..+?)\s*Correct Answer: \[(True|False)\]'
@@ -144,7 +150,7 @@ def parse_questions(questions_text, question_type):
     matches = re.findall(question_pattern, questions_text, re.DOTALL)
 
     for match in matches:
-        if question_type == "MCQ":
+        if question_type == "MCQs":
             question_text, option_a, option_b, option_c, option_d, correct_answer = match
             clean_question = re.sub(r'^\d+\.\s*', '', question_text).strip()
             clean_option_a = re.sub(r'^a\)\s*', '', option_a).strip()
@@ -227,7 +233,7 @@ def export_to_csv(selected_questions, subject, level):
                 level
             ])
         elif "options" in question:
-            # Handle MCQ
+            # Handle MCQs
             is_correct = {
                 "a": question["correct_answer"] == "a",
                 "b": question["correct_answer"] == "b",
@@ -236,7 +242,7 @@ def export_to_csv(selected_questions, subject, level):
             }
             csv_writer.writerow([
                 question["question"],
-                "MCQ",
+                "MCQs",
                 question["options"].get("a", ""),
                 question["options"].get("b", ""),
                 question["options"].get("c", ""),
@@ -287,7 +293,7 @@ else:
     levels = fetch_levels()
 
     # Question Type Input
-    question_type = st.selectbox("Select Question Type:", ["MCQ", "True/False", "Multiple Correct Answers"])
+    question_type = st.selectbox("Select Question Type:", ["MCQs", "True/False", "Multiple Correct Answers"])
 
     # Subject Input with Dynamic Dropdown and Save
     selected_subject = st.selectbox("Subject (select or add new):", subjects + ["Add new..."])
@@ -358,9 +364,12 @@ else:
 
         # Export to CSV Button
         csv_data = export_to_csv(st.session_state.selected_questions, selected_subject, selected_level)
-        st.download_button(
+        if st.download_button(
             label="Export to CSV",
             data=csv_data,
             file_name="questions.csv",
             mime="text/csv"
-            )
+            ):
+            # Clear selected questions after download
+            st.session_state.selected_questions = []
+            st.success("CSV downloaded successfully! The selected questions have been cleared.")
