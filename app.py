@@ -347,6 +347,11 @@ else:
                 for opt_key, option in question["options"].items():
                     st.text(f"{opt_key}. {option}")
             st.write(f"**Correct Answer: {question.get('correct_answer', question.get('correct_answers', []))}**")
+            
+        # Button to select all generated questions
+        if st.button("Select All Questions"):
+            st.session_state.selected_questions = st.session_state.generated_questions.copy()
+            st.success("All questions have been selected.")
 
 
     # Display Selected Questions and Export to CSV
